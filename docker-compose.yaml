@@ -3,7 +3,7 @@ services:
   postgres:
     image: postgres:14-alpine
     environment:
-      - POSTGRES_USER=root
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=simple_bank
     ports:
@@ -20,7 +20,7 @@ services:
       - "8080:8080"
       - "9090:9090"
     environment:
-      - DB_SOURCE=postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
+      - DB_SOURCE=postgresql://postgres:secret@postgres:5432/simple_bank?sslmode=disable
       - REDIS_ADDRESS=redis:6379
     depends_on:
       - postgres
