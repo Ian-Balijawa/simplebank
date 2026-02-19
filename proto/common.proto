@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "github.com/Ian-Balijawa/simplebank/pb";
+
+enum SortOrder {
+    SORT_ORDER_DESC = 0;
+    SORT_ORDER_ASC = 1;
+}
+
+enum TransferDirection {
+    TRANSFER_DIRECTION_ANY = 0;
+    TRANSFER_DIRECTION_IN = 1;
+    TRANSFER_DIRECTION_OUT = 2;
+}

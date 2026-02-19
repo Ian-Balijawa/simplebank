@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package pb;
+
+import "account.proto";
+import "common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "github.com/Ian-Balijawa/simplebank/pb";
+
+message ListEntriesRequest {
+    int64 account_id = 1;
+    int32 page_id = 2;
+    int32 page_size = 3;
+    google.protobuf.Int64Value min_amount = 4;
+    google.protobuf.Int64Value max_amount = 5;
+    google.protobuf.Timestamp from_time = 6;
+    google.protobuf.Timestamp to_time = 7;
+    SortOrder sort_order = 8;
+}
+
+message ListEntriesResponse {
+    repeated Entry entries = 1;
+}
