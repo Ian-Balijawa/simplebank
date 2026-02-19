@@ -56,28 +56,20 @@ migratedown1:
 new_migration:
 	migrate create -ext sql -dir db/migration -seq $(name)
 
-# =========================
-# Documentation & Schema
-# =========================
-
 db_docs:
 	dbdocs build doc/db.dbml
 
 db_schema:
 	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
 
-# =========================
-# Code Generation
-# =========================
-
 sqlc:
 	sqlc generate
 
 mock:
 	mockgen -package mockdb -destination db/mock/store.go \
-		github.com/techschool/simplebank/db/sqlc Store
+		github.com/Ian-Balijawa/simplebank/db/sqlc Store
 	mockgen -package mockwk -destination worker/mock/distributor.go \
-		github.com/techschool/simplebank/worker TaskDistributor
+		github.com/Ian-Balijawa/simplebank/worker TaskDistributor
 
 proto:
 	rm -f pb/*.go
@@ -91,10 +83,6 @@ proto:
 		proto/*.proto
 	statik -src=./doc/swagger -dest=./doc
 
-# =========================
-# Dev & Test
-# =========================
-
 test:
 	go test -v -cover -short ./...
 
@@ -103,10 +91,6 @@ server:
 
 evans:
 	evans --host localhost --port 9090 -r repl
-
-# =========================
-# Phony
-# =========================
 
 .PHONY: \
 	network postgres postgres-remove mysql redis \

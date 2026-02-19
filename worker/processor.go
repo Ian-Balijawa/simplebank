@@ -3,11 +3,11 @@ package worker
 import (
 	"context"
 
+	db "github.com/Ian-Balijawa/simplebank/db/sqlc"
+	"github.com/Ian-Balijawa/simplebank/mail"
 	"github.com/go-redis/redis/v8"
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
-	db "github.com/techschool/simplebank/db/sqlc"
-	"github.com/techschool/simplebank/mail"
 )
 
 const (
@@ -19,6 +19,7 @@ type TaskProcessor interface {
 	Start() error
 	Shutdown()
 	ProcessTaskSendVerifyEmail(ctx context.Context, task *asynq.Task) error
+	ProcessTaskSendAccountAlert(ctx context.Context, task *asynq.Task) error
 }
 
 type RedisTaskProcessor struct {
@@ -57,6 +58,7 @@ func (processor *RedisTaskProcessor) Start() error {
 	mux := asynq.NewServeMux()
 
 	mux.HandleFunc(TaskSendVerifyEmail, processor.ProcessTaskSendVerifyEmail)
+	mux.HandleFunc(TaskSendAccountAlert, processor.ProcessTaskSendAccountAlert)
 
 	return processor.server.Start(mux)
 }

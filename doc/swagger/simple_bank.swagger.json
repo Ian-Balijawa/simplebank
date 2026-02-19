@@ -5,8 +5,8 @@
     "version": "1.2",
     "contact": {
       "name": "Tech School",
-      "url": "https://github.com/techschool",
-      "email": "techschool.guru@gmail.com"
+      "url": "https://github.com/Ian-Balijawa",
+      "email": "Ian-Balijawa.guru@gmail.com"
     }
   },
   "tags": [
@@ -21,6 +21,350 @@
     "application/json"
   ],
   "paths": {
+    "/v1/accounts/{accountId}/alerts": {
+      "get": {
+        "summary": "Get account alert",
+        "description": "Get account balance alert thresholds",
+        "operationId": "SimpleBank_GetAccountAlert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbGetAccountAlertResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      },
+      "put": {
+        "summary": "Upsert account alert",
+        "description": "Create or update account balance alert thresholds",
+        "operationId": "SimpleBank_UpsertAccountAlert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbUpsertAccountAlertResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "lowBalanceThreshold": {
+                  "type": "string",
+                  "format": "int64"
+                },
+                "highBalanceThreshold": {
+                  "type": "string",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      }
+    },
+    "/v1/accounts/{accountId}/entries": {
+      "get": {
+        "summary": "List entries",
+        "description": "List account entries with filters",
+        "operationId": "SimpleBank_ListEntries",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbListEntriesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "pageId",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "minAmount",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "maxAmount",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "fromTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "toTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_ORDER_DESC",
+              "SORT_ORDER_ASC"
+            ],
+            "default": "SORT_ORDER_DESC"
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      }
+    },
+    "/v1/accounts/{accountId}/limits": {
+      "get": {
+        "summary": "Get account limit",
+        "description": "Get account daily transfer limit",
+        "operationId": "SimpleBank_GetAccountLimit",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbGetAccountLimitResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      },
+      "put": {
+        "summary": "Upsert account limit",
+        "description": "Create or update account daily transfer limit",
+        "operationId": "SimpleBank_UpsertAccountLimit",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbUpsertAccountLimitResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "dailyTransferLimit": {
+                  "type": "string",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      }
+    },
+    "/v1/accounts/{accountId}/transfers": {
+      "get": {
+        "summary": "List transfers",
+        "description": "List account transfers with filters",
+        "operationId": "SimpleBank_ListTransfers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbListTransfersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "pageId",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "TRANSFER_DIRECTION_ANY",
+              "TRANSFER_DIRECTION_IN",
+              "TRANSFER_DIRECTION_OUT"
+            ],
+            "default": "TRANSFER_DIRECTION_ANY"
+          },
+          {
+            "name": "minAmount",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "maxAmount",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "fromTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "toTime",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_ORDER_DESC",
+              "SORT_ORDER_ASC"
+            ],
+            "default": "SORT_ORDER_DESC"
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      }
+    },
     "/v1/create_user": {
       "post": {
         "summary": "Create new user",
@@ -164,6 +508,52 @@
     }
   },
   "definitions": {
+    "pbAccountAlert": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "lowBalanceThreshold": {
+          "type": "string",
+          "format": "int64"
+        },
+        "highBalanceThreshold": {
+          "type": "string",
+          "format": "int64"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "pbAccountLimit": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "dailyTransferLimit": {
+          "type": "string",
+          "format": "int64"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
     "pbCreateUserRequest": {
       "type": "object",
       "properties": {
@@ -186,6 +576,65 @@
       "properties": {
         "user": {
           "$ref": "#/definitions/pbUser"
+        }
+      }
+    },
+    "pbEntry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "accountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "amount": {
+          "type": "string",
+          "format": "int64"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "pbGetAccountAlertResponse": {
+      "type": "object",
+      "properties": {
+        "alert": {
+          "$ref": "#/definitions/pbAccountAlert"
+        }
+      }
+    },
+    "pbGetAccountLimitResponse": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "$ref": "#/definitions/pbAccountLimit"
+        }
+      }
+    },
+    "pbListEntriesResponse": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pbEntry"
+          }
+        }
+      }
+    },
+    "pbListTransfersResponse": {
+      "type": "object",
+      "properties": {
+        "transfers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pbTransfer"
+          }
         }
       }
     },
@@ -225,6 +674,48 @@
         }
       }
     },
+    "pbSortOrder": {
+      "type": "string",
+      "enum": [
+        "SORT_ORDER_DESC",
+        "SORT_ORDER_ASC"
+      ],
+      "default": "SORT_ORDER_DESC"
+    },
+    "pbTransfer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "fromAccountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "toAccountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "amount": {
+          "type": "string",
+          "format": "int64"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "pbTransferDirection": {
+      "type": "string",
+      "enum": [
+        "TRANSFER_DIRECTION_ANY",
+        "TRANSFER_DIRECTION_IN",
+        "TRANSFER_DIRECTION_OUT"
+      ],
+      "default": "TRANSFER_DIRECTION_ANY"
+    },
     "pbUpdateUserRequest": {
       "type": "object",
       "properties": {
@@ -247,6 +738,22 @@
       "properties": {
         "user": {
           "$ref": "#/definitions/pbUser"
+        }
+      }
+    },
+    "pbUpsertAccountAlertResponse": {
+      "type": "object",
+      "properties": {
+        "alert": {
+          "$ref": "#/definitions/pbAccountAlert"
+        }
+      }
+    },
+    "pbUpsertAccountLimitResponse": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "$ref": "#/definitions/pbAccountLimit"
         }
       }
     },

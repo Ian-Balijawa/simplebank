@@ -1,10 +1,14 @@
 package gapi
 
 import (
+	"errors"
+
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+var errPermissionDenied = errors.New("permission denied")
 
 func fieldViolation(field string, err error) *errdetails.BadRequest_FieldViolation {
 	return &errdetails.BadRequest_FieldViolation{

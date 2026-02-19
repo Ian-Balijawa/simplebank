@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
+	db "github.com/Ian-Balijawa/simplebank/db/sqlc"
+	"github.com/Ian-Balijawa/simplebank/token"
+	"github.com/Ian-Balijawa/simplebank/worker"
 	"github.com/gin-gonic/gin"
-	db "github.com/techschool/simplebank/db/sqlc"
-	"github.com/techschool/simplebank/token"
 )
 
 type transferRequest struct {
@@ -36,8 +38,17 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		return
 	}
 
-	_, valid = server.validAccount(ctx, req.ToAccountID, req.Currency)
+	toAccount, valid := server.validAccount(ctx, req.ToAccountID, req.Currency)
 	if !valid {
+		return
+	}
+
+	if err := server.checkDailyTransferLimit(ctx, req.FromAccountID, req.Amount); err != nil {
+		if errors.Is(err, db.ErrDailyTransferLimitExceeded) {
+			ctx.JSON(http.StatusForbidden, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -52,6 +63,9 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+
+	server.sendBalanceAlerts(ctx, fromAccount, result.FromAccount)
+	server.sendBalanceAlerts(ctx, toAccount, result.ToAccount)
 
 	ctx.JSON(http.StatusOK, result)
 }
@@ -75,4 +89,76 @@ func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency s
 	}
 
 	return account, true
+}
+
+func (server *Server) checkDailyTransferLimit(ctx *gin.Context, accountID int64, amount int64) error {
+	limit, err := server.store.GetAccountLimit(ctx, accountID)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	if limit.DailyTransferLimit <= 0 {
+		return nil
+	}
+
+	now := time.Now().UTC()
+	dayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	dayEnd := dayStart.Add(24 * time.Hour)
+
+	total, err := server.store.GetDailyTransferTotal(ctx, db.GetDailyTransferTotalParams{
+		FromAccountID: accountID,
+		CreatedAt:     dayStart,
+		CreatedAt_2:   dayEnd,
+	})
+	if err != nil {
+		return err
+	}
+
+	if total+amount > limit.DailyTransferLimit {
+		return db.ErrDailyTransferLimitExceeded
+	}
+
+	return nil
+}
+
+func (server *Server) sendBalanceAlerts(ctx *gin.Context, before db.Account, after db.Account) {
+	if server.taskDistributor == nil {
+		return
+	}
+
+	alert, err := server.store.GetAccountAlert(ctx, after.ID)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			return
+		}
+		return
+	}
+
+	if alert.LowBalanceThreshold > 0 &&
+		before.Balance > alert.LowBalanceThreshold &&
+		after.Balance <= alert.LowBalanceThreshold {
+		_ = server.taskDistributor.DistributeTaskSendAccountAlert(ctx, &worker.PayloadAccountAlert{
+			Username:  after.Owner,
+			AccountID: after.ID,
+			Balance:   after.Balance,
+			Threshold: alert.LowBalanceThreshold,
+			Direction: worker.AlertDirectionLow,
+			Currency:  after.Currency,
+		})
+	}
+
+	if alert.HighBalanceThreshold > 0 &&
+		before.Balance < alert.HighBalanceThreshold &&
+		after.Balance >= alert.HighBalanceThreshold {
+		_ = server.taskDistributor.DistributeTaskSendAccountAlert(ctx, &worker.PayloadAccountAlert{
+			Username:  after.Owner,
+			AccountID: after.ID,
+			Balance:   after.Balance,
+			Threshold: alert.HighBalanceThreshold,
+			Direction: worker.AlertDirectionHigh,
+			Currency:  after.Currency,
+		})
+	}
 }

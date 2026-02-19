@@ -18,6 +18,21 @@ type Account struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type AccountAlert struct {
+	AccountID            int64     `json:"account_id"`
+	LowBalanceThreshold  int64     `json:"low_balance_threshold"`
+	HighBalanceThreshold int64     `json:"high_balance_threshold"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
+}
+
+type AccountLimit struct {
+	AccountID          int64     `json:"account_id"`
+	DailyTransferLimit int64     `json:"daily_transfer_limit"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+}
+
 type Entry struct {
 	ID        int64 `json:"id"`
 	AccountID int64 `json:"account_id"`

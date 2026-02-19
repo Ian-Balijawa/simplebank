@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createTransfer = `-- name: CreateTransfer :one
@@ -36,6 +37,27 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getDailyTransferTotal = `-- name: GetDailyTransferTotal :one
+SELECT COALESCE(SUM(amount), 0)::bigint AS total
+FROM transfers
+WHERE from_account_id = $1
+  AND created_at >= $2
+  AND created_at < $3
+`
+
+type GetDailyTransferTotalParams struct {
+	FromAccountID int64     `json:"from_account_id"`
+	CreatedAt     time.Time `json:"created_at"`
+	CreatedAt_2   time.Time `json:"created_at_2"`
+}
+
+func (q *Queries) GetDailyTransferTotal(ctx context.Context, arg GetDailyTransferTotalParams) (int64, error) {
+	row := q.db.QueryRow(ctx, getDailyTransferTotal, arg.FromAccountID, arg.CreatedAt, arg.CreatedAt_2)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
 }
 
 const getTransfer = `-- name: GetTransfer :one
@@ -77,6 +99,134 @@ func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([
 	rows, err := q.db.Query(ctx, listTransfers,
 		arg.FromAccountID,
 		arg.ToAccountID,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Transfer{}
+	for rows.Next() {
+		var i Transfer
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromAccountID,
+			&i.ToAccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTransfersFilteredAsc = `-- name: ListTransfersFilteredAsc :many
+SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers
+WHERE (
+    ($2 = 'any' AND (from_account_id = $1 OR to_account_id = $1)) OR
+    ($2 = 'out' AND from_account_id = $1) OR
+    ($2 = 'in' AND to_account_id = $1)
+  )
+  AND amount >= $3
+  AND amount <= $4
+  AND created_at >= $5
+  AND created_at <= $6
+ORDER BY created_at ASC
+LIMIT $7
+OFFSET $8
+`
+
+type ListTransfersFilteredAscParams struct {
+	AccountID     int64       `json:"account_id"`
+	Direction     interface{} `json:"direction"`
+	FromAccountID int64       `json:"from_account_id"`
+	Column2       interface{} `json:"column_2"`
+	Amount        int64       `json:"amount"`
+	Amount_2      int64       `json:"amount_2"`
+	CreatedAt     time.Time   `json:"created_at"`
+	CreatedAt_2   time.Time   `json:"created_at_2"`
+	Limit         int32       `json:"limit"`
+	Offset        int32       `json:"offset"`
+}
+
+func (q *Queries) ListTransfersFilteredAsc(ctx context.Context, arg ListTransfersFilteredAscParams) ([]Transfer, error) {
+	rows, err := q.db.Query(ctx, listTransfersFilteredAsc,
+		arg.FromAccountID,
+		arg.Column2,
+		arg.Amount,
+		arg.Amount_2,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Transfer{}
+	for rows.Next() {
+		var i Transfer
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromAccountID,
+			&i.ToAccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTransfersFilteredDesc = `-- name: ListTransfersFilteredDesc :many
+SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers
+WHERE (
+    ($2 = 'any' AND (from_account_id = $1 OR to_account_id = $1)) OR
+    ($2 = 'out' AND from_account_id = $1) OR
+    ($2 = 'in' AND to_account_id = $1)
+  )
+  AND amount >= $3
+  AND amount <= $4
+  AND created_at >= $5
+  AND created_at <= $6
+ORDER BY created_at DESC
+LIMIT $7
+OFFSET $8
+`
+
+type ListTransfersFilteredDescParams struct {
+	AccountID     int64       `json:"account_id"`
+	Direction     interface{} `json:"direction"`
+	FromAccountID int64       `json:"from_account_id"`
+	Column2       interface{} `json:"column_2"`
+	Amount        int64       `json:"amount"`
+	Amount_2      int64       `json:"amount_2"`
+	CreatedAt     time.Time   `json:"created_at"`
+	CreatedAt_2   time.Time   `json:"created_at_2"`
+	Limit         int32       `json:"limit"`
+	Offset        int32       `json:"offset"`
+}
+
+func (q *Queries) ListTransfersFilteredDesc(ctx context.Context, arg ListTransfersFilteredDescParams) ([]Transfer, error) {
+	rows, err := q.db.Query(ctx, listTransfersFilteredDesc,
+		arg.FromAccountID,
+		arg.Column2,
+		arg.Amount,
+		arg.Amount_2,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
 		arg.Limit,
 		arg.Offset,
 	)

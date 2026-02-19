@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	mockdb "github.com/Ian-Balijawa/simplebank/db/mock"
+	db "github.com/Ian-Balijawa/simplebank/db/sqlc"
+	"github.com/Ian-Balijawa/simplebank/token"
+	"github.com/Ian-Balijawa/simplebank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	mockdb "github.com/techschool/simplebank/db/mock"
-	db "github.com/techschool/simplebank/db/sqlc"
-	"github.com/techschool/simplebank/token"
-	"github.com/techschool/simplebank/util"
 )
 
 func TestTransferAPI(t *testing.T) {
@@ -54,6 +54,7 @@ func TestTransferAPI(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(account1, nil)
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account2.ID)).Times(1).Return(account2, nil)
+				store.EXPECT().GetAccountLimit(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(db.AccountLimit{}, db.ErrRecordNotFound)
 
 				arg := db.TransferTxParams{
 					FromAccountID: account1.ID,
@@ -255,6 +256,7 @@ func TestTransferAPI(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(account1, nil)
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account2.ID)).Times(1).Return(account2, nil)
+				store.EXPECT().GetAccountLimit(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(db.AccountLimit{}, db.ErrRecordNotFound)
 				store.EXPECT().TransferTx(gomock.Any(), gomock.Any()).Times(1).Return(db.TransferTxResult{}, sql.ErrTxDone)
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {

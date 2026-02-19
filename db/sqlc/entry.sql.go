@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createEntry = `-- name: CreateEntry :one
@@ -68,6 +69,116 @@ type ListEntriesParams struct {
 
 func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error) {
 	rows, err := q.db.Query(ctx, listEntries, arg.AccountID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Entry{}
+	for rows.Next() {
+		var i Entry
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEntriesFilteredAsc = `-- name: ListEntriesFilteredAsc :many
+SELECT id, account_id, amount, created_at FROM entries
+WHERE account_id = $1
+  AND amount >= $2
+  AND amount <= $3
+  AND created_at >= $4
+  AND created_at <= $5
+ORDER BY created_at ASC
+LIMIT $6
+OFFSET $7
+`
+
+type ListEntriesFilteredAscParams struct {
+	AccountID   int64     `json:"account_id"`
+	Amount      int64     `json:"amount"`
+	Amount_2    int64     `json:"amount_2"`
+	CreatedAt   time.Time `json:"created_at"`
+	CreatedAt_2 time.Time `json:"created_at_2"`
+	Limit       int32     `json:"limit"`
+	Offset      int32     `json:"offset"`
+}
+
+func (q *Queries) ListEntriesFilteredAsc(ctx context.Context, arg ListEntriesFilteredAscParams) ([]Entry, error) {
+	rows, err := q.db.Query(ctx, listEntriesFilteredAsc,
+		arg.AccountID,
+		arg.Amount,
+		arg.Amount_2,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Entry{}
+	for rows.Next() {
+		var i Entry
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEntriesFilteredDesc = `-- name: ListEntriesFilteredDesc :many
+SELECT id, account_id, amount, created_at FROM entries
+WHERE account_id = $1
+  AND amount >= $2
+  AND amount <= $3
+  AND created_at >= $4
+  AND created_at <= $5
+ORDER BY created_at DESC
+LIMIT $6
+OFFSET $7
+`
+
+type ListEntriesFilteredDescParams struct {
+	AccountID   int64     `json:"account_id"`
+	Amount      int64     `json:"amount"`
+	Amount_2    int64     `json:"amount_2"`
+	CreatedAt   time.Time `json:"created_at"`
+	CreatedAt_2 time.Time `json:"created_at_2"`
+	Limit       int32     `json:"limit"`
+	Offset      int32     `json:"offset"`
+}
+
+func (q *Queries) ListEntriesFilteredDesc(ctx context.Context, arg ListEntriesFilteredDescParams) ([]Entry, error) {
+	rows, err := q.db.Query(ctx, listEntriesFilteredDesc,
+		arg.AccountID,
+		arg.Amount,
+		arg.Amount_2,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

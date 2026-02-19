@@ -14,6 +14,8 @@ const (
 
 var ErrRecordNotFound = pgx.ErrNoRows
 
+var ErrDailyTransferLimitExceeded = errors.New("daily transfer limit exceeded")
+
 var ErrUniqueViolation = &pgconn.PgError{
 	Code: UniqueViolation,
 }
